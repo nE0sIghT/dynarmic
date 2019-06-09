@@ -75,6 +75,7 @@ struct FastDispatchHint {};
 struct If;
 struct CheckBit;
 struct CheckHalt;
+struct CallHLEFunction;
 /// A Terminal is the terminal instruction in a MicroBlock.
 using Terminal = boost::variant<
         Invalid,
@@ -86,7 +87,8 @@ using Terminal = boost::variant<
         FastDispatchHint,
         boost::recursive_wrapper<If>,
         boost::recursive_wrapper<CheckBit>,
-        boost::recursive_wrapper<CheckHalt>
+        boost::recursive_wrapper<CheckHalt>,
+        boost::recursive_wrapper<CallHLEFunction>
 >;
 
 /**
@@ -118,6 +120,15 @@ struct CheckBit {
 struct CheckHalt {
     explicit CheckHalt(Terminal else_) : else_(std::move(else_)) {}
     Terminal else_;
+};
+
+/**
+ * This terminal instruction calls a HLE function. next is then executed.
+ */
+struct CallHLEFunction {
+    CallHLEFunction(u64 id, Terminal next) : function_identifier(id), next(std::move(next)) {}
+    u64 function_identifier;
+    Terminal next;
 };
 
 } // namespace Term

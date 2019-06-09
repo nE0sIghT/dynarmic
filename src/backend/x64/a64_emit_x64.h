@@ -11,6 +11,7 @@
 
 #include <dynarmic/A64/a64.h>
 #include <dynarmic/A64/config.h>
+#include <dynarmic/A64/hle.h>
 
 #include "backend/x64/a64_jitstate.h"
 #include "backend/x64/block_range_information.h"
@@ -33,7 +34,7 @@ struct A64EmitContext final : public EmitContext {
 
 class A64EmitX64 final : public EmitX64 {
 public:
-    A64EmitX64(BlockOfCode& code, A64::UserConfig conf, A64::Jit* jit_interface);
+    A64EmitX64(BlockOfCode& code, A64::UserConfig conf, A64::Jit* jit_interface, A64::HLE::FunctionMap& hle_functions);
     ~A64EmitX64() override;
 
     /**
@@ -49,6 +50,8 @@ public:
 protected:
     const A64::UserConfig conf;
     A64::Jit* jit_interface;
+    A64::HLE::FunctionMap& hle_functions;
+
     BlockRangeInformation<u64> block_ranges;
 
     struct FastDispatchEntry {
@@ -99,6 +102,7 @@ protected:
     void EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location) override;
     void EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location) override;
     void EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location) override;
+    void EmitTerminalImpl(IR::Term::CallHLEFunction terminal, IR::LocationDescriptor initial_location) override;
 
     // Patching
     void EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) override;

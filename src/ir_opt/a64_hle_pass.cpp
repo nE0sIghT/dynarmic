@@ -9,6 +9,7 @@
 #include <optional>
 
 #include <dynarmic/A64/config.h>
+#include <dynarmic/A64/hle.h>
 
 #include "common/common_types.h"
 #include "frontend/A64/location_descriptor.h"
@@ -90,11 +91,18 @@ static std::optional<u64> DoesDestinationMatchStub(IR::Block& caller, const A64:
     return {};
 }
 
-void A64HLEPass(IR::Block& block, const A64::UserConfig& conf) {
+void A64HLEPass(IR::Block& block, const A64::UserConfig& conf, const A64::HLE::FunctionMap& hle_functions) {
     const auto read_location = DoesDestinationMatchStub(block, conf);
     if (!read_location) {
         return;
     }
+
+    const auto function = hle_functions.find(*read_location);
+    if (function == hle_functions.end()) {
+        return;
+    }
+
+    block.ReplaceTerminal(IR::Term::CallHLEFunction{*read_location, IR::Term::LinkBlockFast{block.EndLocation()}});
 }
 
 } // namespace Dynarmic::Optimization

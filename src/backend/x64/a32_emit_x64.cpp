@@ -1339,6 +1339,10 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDesc
     EmitTerminal(terminal.else_, initial_location);
 }
 
+void A32EmitX64::EmitTerminalImpl(IR::Term::CallHLEFunction, IR::LocationDescriptor) {
+    ASSERT_MSG(false, "Unexpected CallHLEFunction");
+}
+
 void A32EmitX64::EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {
     const CodePtr patch_location = code.getCurr();
     if (target_code_ptr) {

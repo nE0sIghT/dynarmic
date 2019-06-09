@@ -9,10 +9,13 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <dynarmic/A64/config.h>
+#include <dynarmic/A64/hle.h>
 
 namespace Dynarmic {
 namespace A64 {
@@ -108,6 +111,9 @@ public:
      * i.e.: We're in a callback.
      */
     bool IsExecuting() const;
+
+    /// HLE functions
+    void AddHLEFunctions(HLE::FunctionMap functions);
 
     /**
      * Debugging: Disassemble all of compiled code.

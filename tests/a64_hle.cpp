@@ -8,9 +8,17 @@
 
 #include "A64/testenv.h"
 
+void Print() {
+    printf("mew!\n");
+}
+
 TEST_CASE("A64: HLE", "[a64]") {
     A64TestEnv env;
     Dynarmic::A64::Jit jit{Dynarmic::A64::UserConfig{&env}};
+
+    jit.AddHLEFunctions({
+        {0xDEAD042, {(void*)&Print, {}, {}}}
+    });
 
     env.code_mem.emplace_back(0x94000002); // BL #0x8
     env.code_mem.emplace_back(0x14000000); // B .

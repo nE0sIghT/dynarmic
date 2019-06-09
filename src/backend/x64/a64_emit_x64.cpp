@@ -49,8 +49,8 @@ bool A64EmitContext::AccurateNaN() const {
     return conf.floating_point_nan_accuracy == A64::UserConfig::NaNAccuracy::Accurate;
 }
 
-A64EmitX64::A64EmitX64(BlockOfCode& code, A64::UserConfig conf, A64::Jit* jit_interface)
-        : EmitX64(code), conf(conf), jit_interface{jit_interface} {
+A64EmitX64::A64EmitX64(BlockOfCode& code, A64::UserConfig conf, A64::Jit* jit_interface, A64::HLE::FunctionMap& hle_functions)
+        : EmitX64(code), conf(conf), jit_interface{jit_interface}, hle_functions(hle_functions) {
     GenMemory128Accessors();
     GenFastmemFallbacks();
     GenTerminalHandlers();
@@ -1157,6 +1157,12 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDesc
     code.cmp(code.byte[r15 + offsetof(A64JitState, halt_requested)], u8(0));
     code.jne(code.GetForceReturnFromRunCodeAddress());
     EmitTerminal(terminal.else_, initial_location);
+}
+
+void A64EmitX64::EmitTerminalImpl(IR::Term::CallHLEFunction terminal, IR::LocationDescriptor initial_location) {
+    const auto& function = hle_functions[terminal.function_identifier];
+    code.CallFunction(reinterpret_cast<void(*)()>(function.pointer));
+    EmitTerminal(terminal.next, initial_location);
 }
 
 void A64EmitX64::EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {

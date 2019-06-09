@@ -157,6 +157,10 @@ static std::string TerminalToString(const Terminal& terminal_variant) {
         auto terminal = boost::get<IR::Term::CheckHalt>(terminal_variant);
         return fmt::format("CheckHalt{{{}}}", TerminalToString(terminal.else_));
     }
+    case 10: {
+        auto terminal = boost::get<IR::Term::CallHLEFunction>(terminal_variant);
+        return fmt::format("CallHLEFunction{{{:x}, {}}}", terminal.function_identifier, TerminalToString(terminal.next));
+    }
     default:
         return "<invalid terminal>";
     }

@@ -39,7 +39,7 @@ public:
     Impl(Jit* jit, UserConfig conf)
         : conf(conf)
         , block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this), JitStateInfo{jit_state})
-        , emitter(block_of_code, conf, jit)
+        , emitter(block_of_code, conf, jit, hle_functions)
     {
         ASSERT(conf.page_table_address_space_bits >= 12 && conf.page_table_address_space_bits <= 64);
     }
@@ -175,6 +175,11 @@ public:
         return is_executing;
     }
 
+    void AddHLEFunctions(HLE::FunctionMap new_functions) {
+        new_functions.insert(hle_functions.begin(), hle_functions.end());
+        hle_functions = std::move(new_functions);
+    }
+
     std::string Disassemble() const {
         return Common::DisassembleX64(block_of_code.GetCodeBegin(), block_of_code.getCurr());
     }
@@ -206,7 +211,7 @@ private:
         Optimization::ConstantPropagation(ir_block);
         Optimization::DeadCodeElimination(ir_block);
         Optimization::A64MergeInterpretBlocksPass(ir_block, conf.callbacks);
-        Optimization::A64HLEPass(ir_block, conf);
+        Optimization::A64HLEPass(ir_block, conf, hle_functions);
         // printf("%s\n", IR::DumpBlock(ir_block).c_str());
         Optimization::VerificationPass(ir_block);
         return emitter.Emit(ir_block).entrypoint;
@@ -246,6 +251,8 @@ private:
 
     bool invalidate_entire_cache = false;
     boost::icl::interval_set<u64> invalid_cache_ranges;
+
+    HLE::FunctionMap hle_functions;
 };
 
 Jit::Jit(UserConfig conf)
@@ -351,6 +358,10 @@ void Jit::ClearExclusiveState() {
 
 bool Jit::IsExecuting() const {
     return impl->IsExecuting();
+}
+
+void Jit::AddHLEFunctions(HLE::FunctionMap functions) {
+    impl->AddHLEFunctions(std::move(functions));
 }
 
 std::string Jit::Disassemble() const {

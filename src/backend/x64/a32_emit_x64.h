@@ -93,6 +93,7 @@ protected:
     void EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location) override;
     void EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location) override;
     void EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location) override;
+    void EmitTerminalImpl(IR::Term::CallHLEFunction terminal, IR::LocationDescriptor initial_location) override;
 
     // Patching
     void EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) override;
