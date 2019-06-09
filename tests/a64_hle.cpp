@@ -8,8 +8,9 @@
 
 #include "A64/testenv.h"
 
-void Print() {
+long Print() {
     printf("mew!\n");
+    return 123;
 }
 
 TEST_CASE("A64: HLE", "[a64]") {
@@ -17,7 +18,7 @@ TEST_CASE("A64: HLE", "[a64]") {
     Dynarmic::A64::Jit jit{Dynarmic::A64::UserConfig{&env}};
 
     jit.AddHLEFunctions({
-        {0xDEAD042, {(void*)&Print, {}, {}}}
+        {0xDEAD042, {(void*)&Print, Dynarmic::A64::HLE::ArgumentType::Integer, {}}}
     });
 
     env.code_mem.emplace_back(0x94000002); // BL #0x8
@@ -30,4 +31,7 @@ TEST_CASE("A64: HLE", "[a64]") {
 
     env.ticks_left = 6;
     jit.Run();
+
+    REQUIRE(jit.GetRegister(0) == 123);
+    REQUIRE(jit.GetPC() == 4);
 }

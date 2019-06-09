@@ -1161,7 +1161,16 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDesc
 
 void A64EmitX64::EmitTerminalImpl(IR::Term::CallHLEFunction terminal, IR::LocationDescriptor initial_location) {
     const auto& function = hle_functions[terminal.function_identifier];
+    for (size_t i = 0; i < function.argument_types.size(); i++) {
+        ASSERT(function.argument_types[i] == A64::HLE::ArgumentType::Integer);
+        ASSERT(i < code.ABI_PARAMS.size());
+        code.mov(code.ABI_PARAMS[i], qword[r15 + offsetof(A64JitState, reg) + sizeof(u64) * i]);
+    }
     code.CallFunction(reinterpret_cast<void(*)()>(function.pointer));
+    if (function.return_type) {
+        ASSERT(function.return_type == A64::HLE::ArgumentType::Integer);
+        code.mov(qword[r15 + offsetof(A64JitState, reg) + sizeof(u64) * 0], code.ABI_RETURN);
+    }
     EmitTerminal(terminal.next, initial_location);
 }
 
