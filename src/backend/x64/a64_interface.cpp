@@ -206,6 +206,7 @@ private:
         Optimization::ConstantPropagation(ir_block);
         Optimization::DeadCodeElimination(ir_block);
         Optimization::A64MergeInterpretBlocksPass(ir_block, conf.callbacks);
+        Optimization::A64HLEPass(ir_block, conf);
         // printf("%s\n", IR::DumpBlock(ir_block).c_str());
         Optimization::VerificationPass(ir_block);
         return emitter.Emit(ir_block).entrypoint;

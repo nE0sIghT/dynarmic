@@ -107,6 +107,13 @@ Inst* Value::GetInst() const {
     return inner.inst;
 }
 
+Inst* Value::GetInstIgnoreIdentity() const {
+    if (type == Type::Opaque && inner.inst->GetOpcode() == Opcode::Identity)
+        return inner.inst->GetArg(0).GetInstIgnoreIdentity();
+    ASSERT(type == Type::Opaque);
+    return inner.inst;
+}
+
 bool Value::GetU1() const {
     if (type == Type::Opaque && inner.inst->GetOpcode() == Opcode::Identity)
         return inner.inst->GetArg(0).GetU1();

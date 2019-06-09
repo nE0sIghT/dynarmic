@@ -495,7 +495,7 @@ bool Inst::MayHaveSideEffects() const {
            WritesToFPCR()                               ||
            WritesToFPSR()                               ||
            AltersExclusiveState()                       ||
-           IsMemoryWrite()                              ||
+           IsMemoryReadOrWrite()                        ||
            IsCoprocessorInstruction();
 }
 

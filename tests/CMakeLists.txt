@@ -4,6 +4,7 @@ add_executable(dynarmic_tests
     A32/testenv.h
     A64/a64.cpp
     A64/testenv.h
+    a64_hle.cpp
     cpu_info.cpp
     fp/FPToFixed.cpp
     fp/FPValue.cpp

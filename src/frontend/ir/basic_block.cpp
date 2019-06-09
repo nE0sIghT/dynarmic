@@ -143,14 +143,17 @@ static std::string TerminalToString(const Terminal& terminal_variant) {
         return "PopRSBHint{}";
     }
     case 6: {
+        return "FastDispatchHint{}";
+    }
+    case 7: {
         auto terminal = boost::get<IR::Term::If>(terminal_variant);
         return fmt::format("If{{{}, {}, {}}}", A64::CondToString(terminal.if_), TerminalToString(terminal.then_), TerminalToString(terminal.else_));
     }
-    case 7: {
+    case 8: {
         auto terminal = boost::get<IR::Term::CheckBit>(terminal_variant);
         return fmt::format("CheckBit{{{}, {}}}", TerminalToString(terminal.then_), TerminalToString(terminal.else_));
     }
-    case 8: {
+    case 9: {
         auto terminal = boost::get<IR::Term::CheckHalt>(terminal_variant);
         return fmt::format("CheckHalt{{{}}}", TerminalToString(terminal.else_));
     }

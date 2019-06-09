@@ -166,6 +166,53 @@ void FoldMostSignificantWord(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{static_cast<u32>(operand.GetImmediateAsU64() >> 32)});
 }
 
+// Folds add operations based on the following:
+//
+// 1. imm_x + imm_y + imm_carry -> result
+// 2. x + 0 + 0 -> x
+// 3. 0 + y + 0 -> y
+//
+void FoldAdd(IR::Inst& inst, bool is_32_bit) {
+    if (inst.HasAssociatedPseudoOperation()) {
+        return;
+    }
+
+    const auto lhs = inst.GetArg(0);
+    const auto rhs = inst.GetArg(1);
+    const auto carry = inst.GetArg(2);
+
+    if (lhs.IsImmediate() && rhs.IsImmediate() && carry.IsImmediate()) {
+        const u64 result = lhs.GetImmediateAsU64() + rhs.GetImmediateAsU64() + carry.GetImmediateAsU64();
+        ReplaceUsesWith(inst, is_32_bit, result);
+    } else if (lhs.IsZero() && carry.IsZero()) {
+        inst.ReplaceUsesWith(rhs);
+    } else if (rhs.IsZero() && carry.IsZero()) {
+        inst.ReplaceUsesWith(lhs);
+    }
+}
+
+// Folds sub operations based on the following:
+//
+// 1. imm_x + ~imm_y + imm_carry -> result
+// 2. x + ~0 + 1 -> x
+//
+void FoldSub(IR::Inst& inst, bool is_32_bit) {
+    if (inst.HasAssociatedPseudoOperation()) {
+        return;
+    }
+
+    const auto lhs = inst.GetArg(0);
+    const auto rhs = inst.GetArg(1);
+    const auto carry = inst.GetArg(2);
+
+    if (lhs.IsImmediate() && rhs.IsImmediate() && carry.IsImmediate()) {
+        const u64 result = lhs.GetImmediateAsU64() + ~rhs.GetImmediateAsU64() + carry.GetImmediateAsU64();
+        ReplaceUsesWith(inst, is_32_bit, result);
+    } else if (rhs.IsZero() && carry.IsUnsignedImmediate(1)) {
+        inst.ReplaceUsesWith(lhs);
+    }
+}
+
 // Folds multiplication operations based on the following:
 //
 // 1. imm_x * imm_y -> result
@@ -308,6 +355,14 @@ void ConstantPropagation(IR::Block& block) {
         case IR::Opcode::RotateRight32:
         case IR::Opcode::RotateRight64:
             FoldShifts(inst);
+            break;
+        case IR::Opcode::Add32:
+        case IR::Opcode::Add64:
+            FoldAdd(inst, opcode == IR::Opcode::Add32);
+            break;
+        case IR::Opcode::Sub32:
+        case IR::Opcode::Sub64:
+            FoldSub(inst, opcode == IR::Opcode::Sub32);
             break;
         case IR::Opcode::Mul32:
         case IR::Opcode::Mul64:
