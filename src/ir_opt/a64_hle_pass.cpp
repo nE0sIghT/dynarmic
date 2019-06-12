@@ -4,6 +4,7 @@
  * General Public License version 2 or any later version.
  */
 
+#include <algorithm>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <optional>
@@ -15,6 +16,7 @@
 #include "frontend/A64/location_descriptor.h"
 #include "frontend/A64/translate/translate.h"
 #include "frontend/A64/types.h"
+#include "frontend/A64/ir_emitter.h"
 #include "frontend/ir/basic_block.h"
 #include "frontend/ir/opcodes.h"
 #include "ir_opt/passes.h"
@@ -60,9 +62,6 @@ static std::optional<u64> DoesDestinationMatchStub(IR::Block& caller, const A64:
 
         const u64 read_location = read_memory->GetArg(0).GetU64();
 
-        fmt::print("function stub for {} at {}:\n", read_location, A64::LocationDescriptor{term->next});
-        fmt::print("{}\n", IR::DumpBlock(callee));
-
         for (auto& inst : callee) {
             if (!inst.MayHaveSideEffects()) {
                 continue;
@@ -81,11 +80,9 @@ static std::optional<u64> DoesDestinationMatchStub(IR::Block& caller, const A64:
                 break;
             }
 
-            fmt::print("FAILED!\n");
             return {};
         }
 
-        fmt::print("PASSED!\n");
         return read_location;
     }
     return {};
@@ -102,7 +99,19 @@ void A64HLEPass(IR::Block& block, const A64::UserConfig& conf, const A64::HLE::F
         return;
     }
 
-    block.ReplaceTerminal(IR::Term::CallHLEFunction{*read_location, IR::Term::LinkBlockFast{block.EndLocation()}});
+    //fmt::print("caller for {}:\n", *read_location);
+    //fmt::print("{}\n", IR::DumpBlock(block));
+
+    const auto push_rsb = std::find_if(block.begin(), block.end(), [](const IR::Inst& inst){ return inst.GetOpcode() == IR::Opcode::PushRSB; });
+
+    if (push_rsb != block.end()) {
+        block.Instructions().remove(push_rsb);
+        block.ReplaceTerminal(IR::Term::CallHLEFunction{*read_location, IR::Term::LinkBlockFast{block.EndLocation()}});
+    } else {
+        A64::IREmitter ir{block};
+        ir.SetPC(ir.GetX(A64::Reg::R30));
+        block.ReplaceTerminal(IR::Term::CallHLEFunction{*read_location, IR::Term::PopRSBHint{}});
+    }
 }
 
 } // namespace Dynarmic::Optimization
