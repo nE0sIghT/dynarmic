@@ -96,6 +96,10 @@ void A64HLEPass(IR::Block& block, const A64::UserConfig& conf, const A64::HLE::F
 
     const auto function = hle_functions.find(*read_location);
     if (function == hle_functions.end()) {
+        A64::IREmitter ir{block};
+        if (conf.hleable_function_called) {
+            ir.HLEableFunctionCalled(ir.Imm64(*read_location));
+        }
         return;
     }
 

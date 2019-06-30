@@ -680,6 +680,14 @@ void A64EmitX64::EmitA64SetTPIDR(A64EmitContext& ctx, IR::Inst* inst) {
     }
 }
 
+void A64EmitX64::EmitA64HLEableFunctionCalled(A64EmitContext& ctx, IR::Inst* inst) {
+    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
+    if (conf.hleable_function_called) {
+        ctx.reg_alloc.HostCall(nullptr, args[0]);
+        code.CallFunction(conf.hleable_function_called);
+    }
+}
+
 void A64EmitX64::EmitA64ClearExclusive(A64EmitContext&, IR::Inst*) {
     code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(0));
 }

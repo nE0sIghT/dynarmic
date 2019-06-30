@@ -183,6 +183,8 @@ struct UserConfig {
     // Determines whether AddTicks and GetTicksRemaining are called.
     // If false, execution will continue until soon after Jit::HaltExecution is called.
     // bool enable_ticks = true; // TODO
+
+    void (*hleable_function_called)(VAddr) = nullptr;
 };
 
 } // namespace A64

@@ -93,6 +93,10 @@ void IREmitter::SetTPIDR(const IR::U64& value) {
     Inst(Opcode::A64SetTPIDR, value);
 }
 
+void IREmitter::HLEableFunctionCalled(const IR::U64& value) {
+    Inst(Opcode::A64HLEableFunctionCalled, value);
+}
+
 IR::U64 IREmitter::GetTPIDRRO() {
     return Inst<IR::U64>(Opcode::A64GetTPIDRRO);
 }

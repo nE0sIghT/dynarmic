@@ -53,6 +53,7 @@ public:
     IR::U64 GetTPIDR();
     IR::U64 GetTPIDRRO();
     void SetTPIDR(const IR::U64& value);
+    void HLEableFunctionCalled(const IR::U64& value);
 
     void ClearExclusive();
     void SetExclusive(const IR::U64& vaddr, size_t byte_size);

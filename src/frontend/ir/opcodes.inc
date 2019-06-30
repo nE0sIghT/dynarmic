@@ -76,6 +76,7 @@ A64OPC(GetDCZID,                                            U32,                
 A64OPC(GetTPIDR,                                            U64,                                                                            )
 A64OPC(GetTPIDRRO,                                          U64,                                                                            )
 A64OPC(SetTPIDR,                                            Void,           U64                                                             )
+A64OPC(HLEableFunctionCalled,                               Void,           U64                                                             )
 
 // Hints
 OPCODE(PushRSB,                                             Void,           U64                                                             )

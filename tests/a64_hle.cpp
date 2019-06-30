@@ -4,6 +4,8 @@
  * General Public License version 2 or any later version.
  */
 
+#include <cinttypes>
+
 #include <catch.hpp>
 
 #include "A64/testenv.h"
@@ -64,5 +66,27 @@ TEST_CASE("A64: HLE 2", "[a64]") {
 
     REQUIRE(jit.GetVector(0)[0] == 0xBFF0000000000000);
     REQUIRE(jit.GetPC() == 4);
+}
+
+void Print3(u64 fn) {
+    printf("fn: %" PRIx64 "\n", fn);
+}
+
+TEST_CASE("A64: HLE 3", "[a64]") {
+    A64TestEnv env;
+    Dynarmic::A64::UserConfig conf{&env};
+    conf.hleable_function_called = &Print3;
+    Dynarmic::A64::Jit jit{conf};
+
+    env.code_mem.emplace_back(0x94000002); // BL #0x8
+    env.code_mem.emplace_back(0x14000000); // B .
+
+    env.code_mem.emplace_back(0xB006F570); // ADRP X16, #0xDEAD000
+    env.code_mem.emplace_back(0xF8442211); // LDR X17, [X16, 0x42]
+    env.code_mem.emplace_back(0x91010A10); // ADD X16, X16, 0x42
+    env.code_mem.emplace_back(0xD61F0220); // BR X17
+
+    env.ticks_left = 6;
+    jit.Run();
 }
 
