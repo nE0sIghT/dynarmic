@@ -1161,16 +1161,42 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDesc
 
 void A64EmitX64::EmitTerminalImpl(IR::Term::CallHLEFunction terminal, IR::LocationDescriptor initial_location) {
     const auto& function = hle_functions[terminal.function_identifier];
+
+    size_t integer_index = 0, float_index = 0;
     for (size_t i = 0; i < function.argument_types.size(); i++) {
-        ASSERT(function.argument_types[i] == A64::HLE::ArgumentType::Integer);
-        ASSERT(i < code.ABI_PARAMS.size());
-        code.mov(code.ABI_PARAMS[i], qword[r15 + offsetof(A64JitState, reg) + sizeof(u64) * i]);
+        switch (function.argument_types[i]) {
+        case A64::HLE::ArgumentType::Integer:
+            ASSERT(integer_index < code.ABI_PARAMS.size());
+            code.mov(code.ABI_PARAMS[integer_index], qword[r15 + offsetof(A64JitState, reg) + sizeof(u64) * integer_index]);
+            integer_index++;
+            break;
+        case A64::HLE::ArgumentType::Float:
+            ASSERT(float_index < 4); // Windows has a maximum of four in registers, SysV has a maximum of 8.
+            code.movaps(Xbyak::Xmm(float_index), xword[r15 + offsetof(A64JitState, vec) + sizeof(u64) * 2 * float_index]);
+            float_index++;
+            break;
+        default:
+            UNREACHABLE();
+            break;
+        }
     }
+
     code.CallFunction(reinterpret_cast<void(*)()>(function.pointer));
+
     if (function.return_type) {
-        ASSERT(function.return_type == A64::HLE::ArgumentType::Integer);
-        code.mov(qword[r15 + offsetof(A64JitState, reg) + sizeof(u64) * 0], code.ABI_RETURN);
+        switch (*function.return_type) {
+        case A64::HLE::ArgumentType::Integer:
+            code.mov(qword[r15 + offsetof(A64JitState, reg) + sizeof(u64) * 0], code.ABI_RETURN);
+            break;
+        case A64::HLE::ArgumentType::Float:
+            code.movaps(xword[r15 + offsetof(A64JitState, vec) + sizeof(u64) * 2 * 0], code.xmm0);
+            break;
+        default:
+            UNREACHABLE();
+            break;
+        }
     }
+
     EmitTerminal(terminal.next, initial_location);
 }
 
