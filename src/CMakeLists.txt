@@ -274,6 +274,8 @@ if (ARCHITECTURE_x86_64)
     else()
         target_sources(dynarmic PRIVATE backend/x64/exception_handler_generic.cpp)
     endif()
+
+    target_link_libraries(dynarmic PRIVATE xbyak)
 elseif(ARCHITECTURE_Aarch64)
     target_sources(dynarmic PRIVATE
          backend/A64/emitter/a64_emitter.cpp
@@ -297,7 +299,6 @@ target_link_libraries(dynarmic
     PRIVATE
         boost
         fmt::fmt
-        xbyak
         $<$<BOOL:DYNARMIC_USE_LLVM>:${llvm_libs}>
 )
 if (DYNARMIC_ENABLE_CPU_FEATURE_DETECTION)
@@ -313,7 +314,14 @@ endif()
 target_compile_definitions(dynarmic PRIVATE FMT_USE_USER_DEFINED_LITERALS=0)
 
 export(
-    TARGETS   dynarmic boost fmt xbyak
+    TARGETS   dynarmic boost fmt
     NAMESPACE dynarmic::
     FILE      "dynarmic-config.cmake"
 )
+if (ARCHITECTURE_x86_64)
+    export(
+        TARGETS   xbyak
+        NAMESPACE dynarmic::
+        FILE      "dynarmic-config.cmake"
+    )
+endif()
