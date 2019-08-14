@@ -1022,7 +1022,7 @@ void A32EmitX64::EmitA32CoprocSendOneWord(A32EmitContext& ctx, IR::Inst* inst) {
 
     const auto action = coproc->CompileSendOneWord(two, opc1, CRn, CRm, opc2);
 
-    if (std::get_if<std::monostate>(&action)) {
+    if (std::holds_alternative<std::monostate>(action)) {
         EmitCoprocessorException();
         return;
     }
@@ -1062,7 +1062,7 @@ void A32EmitX64::EmitA32CoprocSendTwoWords(A32EmitContext& ctx, IR::Inst* inst) 
 
     const auto action = coproc->CompileSendTwoWords(two, opc, CRm);
 
-    if (std::get_if<std::monostate>(&action)) {
+    if (std::holds_alternative<std::monostate>(action)) {
         EmitCoprocessorException();
         return;
     }
@@ -1106,7 +1106,7 @@ void A32EmitX64::EmitA32CoprocGetOneWord(A32EmitContext& ctx, IR::Inst* inst) {
 
     const auto action = coproc->CompileGetOneWord(two, opc1, CRn, CRm, opc2);
 
-    if (std::get_if<std::monostate>(&action)) {
+    if (std::holds_alternative<std::monostate>(action)) {
         EmitCoprocessorException();
         return;
     }
@@ -1146,7 +1146,7 @@ void A32EmitX64::EmitA32CoprocGetTwoWords(A32EmitContext& ctx, IR::Inst* inst) {
 
     auto action = coproc->CompileGetTwoWords(two, opc, CRm);
 
-    if (std::get_if<std::monostate>(&action)) {
+    if (std::holds_alternative<std::monostate>(action)) {
         EmitCoprocessorException();
         return;
     }
