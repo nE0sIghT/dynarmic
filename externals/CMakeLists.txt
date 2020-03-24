@@ -5,8 +5,12 @@
 if (NOT DYNARMIC_NO_BUNDLED_FMT)
     # fmtlib formatting library
     add_subdirectory(fmt)
+else()
+    find_package(fmt 6.0 CONFIG REQUIRED)
+    message(STATUS "Using shared fmt ${fmt_VERSION}")
 endif()
 
+if (NOT DYNARMIC_NO_BUNDLED_XBYAK)
 if (NOT TARGET xbyak)
     if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
         add_library(xbyak INTERFACE)
@@ -14,7 +18,10 @@ if (NOT TARGET xbyak)
         target_compile_definitions(xbyak INTERFACE XBYAK_NO_OP_NAMES)
     endif()
 endif()
+endif(NOT DYNARMIC_NO_BUNDLED_XBYAK)
 
+if (NOT DYNARMIC_NO_BUNDLED_CATCH)
 add_library(catch INTERFACE)
 target_include_directories(catch INTERFACE
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/catch>)
+endif(NOT DYNARMIC_NO_BUNDLED_CATCH)
